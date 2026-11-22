@@ -1,0 +1,309 @@
+[
+  {
+    "model": "biblioteca.autor",
+    "pk": 1,
+    "fields": {
+      "nombre": "Gabriel Garc\u00eda M\u00e1rquez"
+    }
+  },
+  {
+    "model": "biblioteca.autor",
+    "pk": 2,
+    "fields": {
+      "nombre": "Robert C. Martin"
+    }
+  },
+  {
+    "model": "biblioteca.autor",
+    "pk": 3,
+    "fields": {
+      "nombre": "Eric Evans"
+    }
+  },
+  {
+    "model": "biblioteca.categoria",
+    "pk": 1,
+    "fields": {
+      "nombre": "Novela"
+    }
+  },
+  {
+    "model": "biblioteca.categoria",
+    "pk": 2,
+    "fields": {
+      "nombre": "Ingenier\u00eda"
+    }
+  },
+  {
+    "model": "biblioteca.categoria",
+    "pk": 3,
+    "fields": {
+      "nombre": "Historia"
+    }
+  },
+  {
+    "model": "biblioteca.libro",
+    "pk": 1,
+    "fields": {
+      "titulo": "Cien a\u00f1os de soledad",
+      "anio_publicacion": 1967,
+      "isbn": "9780307474728",
+      "categoria": 1,
+      "idioma": "Espa\u00f1ol",
+      "autores": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "biblioteca.libro",
+    "pk": 2,
+    "fields": {
+      "titulo": "Clean Code",
+      "anio_publicacion": 2008,
+      "isbn": "9780132350884",
+      "categoria": 2,
+      "idioma": "Ingl\u00e9s",
+      "autores": [
+        2
+      ]
+    }
+  },
+  {
+    "model": "biblioteca.libro",
+    "pk": 3,
+    "fields": {
+      "titulo": "El amor en los tiempos del c\u00f3lera",
+      "anio_publicacion": 1985,
+      "isbn": "9780307389732",
+      "categoria": 1,
+      "idioma": "Espa\u00f1ol",
+      "autores": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "biblioteca.libro",
+    "pk": 4,
+    "fields": {
+      "titulo": "Domain-Driven Design",
+      "anio_publicacion": 2003,
+      "isbn": "9780321125217",
+      "categoria": 2,
+      "idioma": "Ingl\u00e9s",
+      "autores": [
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "biblioteca.libro",
+    "pk": 5,
+    "fields": {
+      "titulo": "Sapiens",
+      "anio_publicacion": 2011,
+      "isbn": "9780062316097",
+      "categoria": 3,
+      "idioma": "Ingl\u00e9s",
+      "autores": [
+        3
+      ]
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 1,
+    "fields": {
+      "libro": 1,
+      "codigo_inventario": "INV-001",
+      "condicion": "nuevo"
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 2,
+    "fields": {
+      "libro": 2,
+      "codigo_inventario": "INV-004",
+      "condicion": "danado"
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 3,
+    "fields": {
+      "libro": 2,
+      "codigo_inventario": "INV-003",
+      "condicion": "nuevo"
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 4,
+    "fields": {
+      "libro": 3,
+      "codigo_inventario": "INV-005",
+      "condicion": "usado"
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 5,
+    "fields": {
+      "libro": 1,
+      "codigo_inventario": "INV-002",
+      "condicion": "usado"
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 6,
+    "fields": {
+      "libro": 4,
+      "codigo_inventario": "INV-006",
+      "condicion": "nuevo"
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 7,
+    "fields": {
+      "libro": 4,
+      "codigo_inventario": "INV-007",
+      "condicion": "usado"
+    }
+  },
+  {
+    "model": "biblioteca.copia",
+    "pk": 8,
+    "fields": {
+      "libro": 5,
+      "codigo_inventario": "INV-008",
+      "condicion": "nuevo"
+    }
+  },
+  {
+    "model": "biblioteca.estudiante",
+    "pk": 1,
+    "fields": {
+      "codigo": "1152001",
+      "nombre": "Laura Mart\u00ednez",
+      "correo": "laura.martinez@ejemplo.com"
+    }
+  },
+  {
+    "model": "biblioteca.estudiante",
+    "pk": 2,
+    "fields": {
+      "codigo": "1152002",
+      "nombre": "Carlos P\u00e9rez",
+      "correo": "carlos.perez@ejemplo.com"
+    }
+  },
+  {
+    "model": "biblioteca.estudiante",
+    "pk": 3,
+    "fields": {
+      "codigo": "1152003",
+      "nombre": "Valentina Rojas",
+      "correo": "valentina.rojas@ejemplo.com"
+    }
+  },
+  {
+    "model": "biblioteca.estudiante",
+    "pk": 4,
+    "fields": {
+      "codigo": "1152004",
+      "nombre": "Andr\u00e9s G\u00f3mez",
+      "correo": "andres.gomez@ejemplo.com"
+    }
+  },
+  {
+    "model": "biblioteca.estudiante",
+    "pk": 5,
+    "fields": {
+      "codigo": "1152005",
+      "nombre": "Sof\u00eda Ram\u00edrez",
+      "correo": "sofia.ramirez@ejemplo.com"
+    }
+  },
+  {
+    "model": "biblioteca.prestamo",
+    "pk": 1,
+    "fields": {
+      "copia": 1,
+      "estudiante": 1,
+      "fecha_salida": "2026-10-01",
+      "fecha_limite": "2026-10-15",
+      "fecha_devolucion": "2026-10-12"
+    }
+  },
+  {
+    "model": "biblioteca.prestamo",
+    "pk": 2,
+    "fields": {
+      "copia": 5,
+      "estudiante": 2,
+      "fecha_salida": "2026-10-20",
+      "fecha_limite": "2026-11-03",
+      "fecha_devolucion": "2026-11-04"
+    }
+  },
+  {
+    "model": "biblioteca.prestamo",
+    "pk": 3,
+    "fields": {
+      "copia": 3,
+      "estudiante": 1,
+      "fecha_salida": "2026-10-25",
+      "fecha_limite": "2026-11-08",
+      "fecha_devolucion": null
+    }
+  },
+  {
+    "model": "biblioteca.prestamo",
+    "pk": 4,
+    "fields": {
+      "copia": 1,
+      "estudiante": 3,
+      "fecha_salida": "2026-10-28",
+      "fecha_limite": "2026-11-11",
+      "fecha_devolucion": null
+    }
+  },
+  {
+    "model": "biblioteca.prestamo",
+    "pk": 5,
+    "fields": {
+      "copia": 2,
+      "estudiante": 2,
+      "fecha_salida": "2026-09-15",
+      "fecha_limite": "2026-09-29",
+      "fecha_devolucion": "2026-09-27"
+    }
+  },
+  {
+    "model": "biblioteca.prestamo",
+    "pk": 6,
+    "fields": {
+      "copia": 4,
+      "estudiante": 1,
+      "fecha_salida": "2026-09-01",
+      "fecha_limite": "2026-09-15",
+      "fecha_devolucion": "2026-09-14"
+    }
+  },
+  {
+    "model": "biblioteca.prestamo",
+    "pk": 7,
+    "fields": {
+      "copia": 5,
+      "estudiante": 4,
+      "fecha_salida": "2026-11-05",
+      "fecha_limite": "2026-11-19",
+      "fecha_devolucion": null
+    }
+  }
+]
