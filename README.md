@@ -61,10 +61,10 @@ biblioteca-ufps/
     ├── models.py                                                           # los 6 modelos y la regla de la copia prestada
     ├── admin.py                                                            # personalización del panel de administración
     ├── migrations/                                                         # historial de cambios de la base de datos (0001, 0002, 0003)
-        ├── __init__.py                                                     # vacío: marca la carpeta como paquete
-        ├── 0001_initial.py                                                 # crea las tablas de los modelos
-        ├── 0002_libro_idioma.py                                            # agrega el campo idioma a Libro
-        └── 0003_alter_prestamo_options_alter_prestamo_copia_and_more.py    # ajustes en prestamo
+    │   ├── __init__.py                                                     # vacío: marca la carpeta como paquete
+    │   ├── 0001_initial.py                                                 # crea las tablas de los modelos
+    │   ├── 0002_libro_idioma.py                                            # agrega el campo idioma a Libro
+    │   └── 0003_alter_prestamo_options_alter_prestamo_copia_and_more.py    # ajustes en prestamo
     ├── views.py                                                            # vacío: el proyecto no tiene vistas propias
     └── tests.py                                                            # vacío
 ```
