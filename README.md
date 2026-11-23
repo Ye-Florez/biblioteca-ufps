@@ -1,5 +1,73 @@
 # biblioteca-ufps
 
+## Descripción
+
+Biblioteca UFPS es la base de datos de una biblioteca universitaria construida con Django. Registra libros, autores, categorías, copias físicas, estudiantes y préstamos, y reemplaza el cuaderno en el que la bibliotecaria llevaba los préstamos. Está pensada para el personal de la biblioteca, que la maneja desde el panel de administración de Django sin necesidad de saber programar. El proyecto cubre los modelos, las migraciones, el panel de administración, las consultas con el ORM y su optimización.
+
+## Tecnologías
+
+- Python 
+- Django 5.2.19
+- SQLite
+
+## Instalación y ejecución
+
+```bash
+# 1. Clonar el repositorio
+git clone [URL DEL REPOSITORIO]
+cd biblioteca-ufps
+
+# 2. Crear y activar el entorno virtual
+python -m venv venv
+source venv/bin/activate        # en Windows: venv\Scripts\activate
+
+# 3. Instalar las dependencias
+pip install -r requirements.txt
+
+# 4. Crear la base de datos
+python manage.py migrate
+
+# 5. (Opcional) Cargar los datos de prueba
+python manage.py loaddata datos_prueba.json
+
+# 6. Crear un superusuario para entrar al panel de administración
+python manage.py createsuperuser
+
+# 7. Arrancar el servidor
+python manage.py runserver
+```
+
+Luego se abre `http://127.0.0.1:8000/admin` y se entra con el superusuario creado en el paso 6. El archivo `db.sqlite3` no se sube al repositorio, por eso cada persona crea su propia base con `migrate`.
+
+Los datos de prueba (`datos_prueba.json`) incluyen 5 libros, 3 autores, 3 categorías, 8 copias, 5 estudiantes y 7 préstamos (algunos devueltos y otros sin devolver).
+
+## Estructura del proyecto
+
+```
+biblioteca-ufps/
+├── manage.py                                                               # herramienta de línea de comandos de Django (runserver,      │                                                                           migrate, shell...)
+├── requirements.txt                                                        # librerías que necesita el proyecto
+├── datos_prueba.json                                                       # datos de ejemplo para cargar con loaddata
+├── .gitignore                                                              # archivos que Git no debe subir (venv, __pycache__,          │                                                                           db.sqlite3)
+├── config/                                                                 # configuración del proyecto
+│   ├── __init__.py                                                         # vacío: marca la carpeta como paquete de Python
+│   ├── settings.py                                                         # ajustes: apps instaladas, base de datos, idioma
+│   ├── urls.py                                                             # rutas del proyecto (aquí está /admin)
+│   ├── wsgi.py                                                             # punto de entrada para servidores web
+│   └── asgi.py                                                             # punto de entrada para servidores asíncronos
+└── biblioteca/                                                             # la app de la biblioteca
+    ├── __init__.py                                                         # vacío: marca la carpeta como paquete de Python
+    ├── apps.py                                                             # configuración de la app
+    ├── models.py                                                           # los 6 modelos y la regla de la copia prestada
+    ├── admin.py                                                            # personalización del panel de administración
+    ├── migrations/                                                         # historial de cambios de la base de datos (0001, 0002, 0003)
+        ├── __init__.py                                                     # vacío: marca la carpeta como paquete
+        ├── 0001_initial.py                                                 # crea las tablas de los modelos
+        ├── 0002_libro_idioma.py                                            # agrega el campo idioma a Libro
+        └── 0003_alter_prestamo_options_alter_prestamo_copia_and_more.py    # ajustes en prestamo
+    ├── views.py                                                            # vacío: el proyecto no tiene vistas propias
+    └── tests.py                                                            # vacío
+```
 
 ## FASE 5. Consultas del ORM
 
@@ -423,3 +491,76 @@ erDiagram
 **Correcciones:** 
 - No puso "fecha_devolucion" de PRESTAMO como nullable
 - El agente incluyo una tabla LIBRO_AUTOR, lo que hacia que el ManyToManyField entre LIBRO y AUTOR no apareciera como muchos a muchos
+
+## Modelo de datos
+
+Las relaciones del diagrama superior son, una por una:
+
+- **Categoría → Libro (uno a muchos):** cada libro pertenece a una sola categoría y una categoría agrupa muchos libros. La `ForeignKey` está en `Libro` con `on_delete=PROTECT`, para no poder borrar una categoría que todavía tenga libros.
+- **Libro ↔ Autor (muchos a muchos):** un libro puede tener varios autores y un autor puede haber escrito varios libros. Se declara con un `ManyToManyField` en `Libro`, y Django crea solo la tabla intermedia `biblioteca_libro_autores`.
+- **Libro → Copia (uno a muchos):** de un mismo libro puede haber varias copias físicas, cada una con su código de inventario y su condición. Es la razón de que sean dos modelos: con uno solo no se podría saber qué copia concreta está prestada. La `ForeignKey` está en `Copia` con `on_delete=CASCADE`, porque una copia no tiene sentido sin su libro.
+- **Copia → Préstamo (uno a muchos):** una copia puede prestarse muchas veces a lo largo del tiempo, pero cada préstamo es de una sola copia. Usa `on_delete=PROTECT` para conservar el historial.
+- **Estudiante → Préstamo (uno a muchos):** un estudiante puede tener muchos préstamos y cada préstamo es de un solo estudiante. Usa `on_delete=PROTECT`, así no se puede borrar un estudiante que tenga historial.
+
+La fecha real de devolución (`fecha_devolucion`) admite valores vacíos (`null=True, blank=True`): mientras el libro sigue prestado vale `None`, y esa es la definición de préstamo activo.
+
+### Regla de la copia prestada
+
+"Una copia no puede estar prestada a dos personas al mismo tiempo" se implementó con una **restricción en la base de datos** (`UniqueConstraint` condicional dentro de `class Meta` de `Prestamo`):
+
+```python
+models.UniqueConstraint(
+    fields=["copia"],
+    condition=Q(fecha_devolucion__isnull=True),
+    name="una_copia_un_prestamo_activo",
+    violation_error_message="Esta copia ya está prestada y no ha sido devuelta.",
+)
+```
+
+La restricción dice que no puede haber dos préstamos de la misma copia que tengan `fecha_devolucion` vacía. Un préstamo ya devuelto no cuenta, así que la copia se puede volver a prestar.
+
+**Por qué elegimos constraint y no `clean()`:** `clean()` solo se ejecuta cuando los datos vienen de formularios o del admin, y se salta si se guarda con `.save()` o `.create()` desde el shell o desde un script. La restricción la hace cumplir la propia base de datos sin importar desde dónde se guarde, así que la regla no se puede romper por accidente. Además, con `violation_error_message` el admin muestra un mensaje claro a la bibliotecaria.
+
+**Prueba:** al intentar crear un segundo préstamo de una copia que ya está prestada, el admin (y `full_clean()`) muestra el mensaje "Esta copia ya está prestada y no ha sido devuelta.", y desde el shell `Prestamo.objects.create(...)` lanza `IntegrityError: UNIQUE constraint failed`. [CONFIRMAR: que lo probaron ustedes]
+
+## Panel de administración
+
+Se personalizó pensando en una bibliotecaria sin conocimientos técnicos que registra préstamos todos los días:
+
+| Personalización | Necesidad que resuelve |
+|---|---|
+| `search_fields` de `Estudiante` por código y nombre | Encontrar a un estudiante escribiendo cualquiera de los dos datos. |
+| Filtro propio "Estado" en `Prestamo` (Sin devolver / Devueltos) | Ver de un vistazo qué préstamos siguen sin devolverse. |
+| Columna "Devuelto" (con ícono de sí/no) en `Prestamo` | Distinguir préstamos activos y devueltos en la lista, sin leer fechas. |
+| `autocomplete_fields` en `copia` y `estudiante` de `Prestamo` | Elegir copia y estudiante escribiendo en una caja de búsqueda, en vez de una lista larguísima en la que es fácil confundirse. |
+| `search_fields` de `Prestamo` (código del estudiante, nombre y código de inventario) | Buscar un préstamo por estudiante o por copia. |
+| Copias como `TabularInline` dentro de `Libro` | Registrar las copias físicas en la misma página del libro. |
+| `readonly_fields` con "Total de copias" en `Libro` | Ver cuántas copias tiene el libro sin poder editar el dato por error. |
+| `list_display`, `search_fields` y `list_filter` en `Libro`, `Copia` y `Prestamo` | Listas con las columnas útiles, búsqueda y filtros laterales (por categoría, idioma, condición y fecha límite). |
+| `__str__` legible en todos los modelos | Que el admin muestre "INV-001 - Clean Code" en vez de "Copia object (1)". |
+
+## Uso de inteligencia artificial
+
+Usamos Chat GPT como apoyo en la fase 7 para el diagrama mermaid. Le pasamos `models.py` y le pedimos un `erDiagram` con todos los modelos, sus campos y las relaciones, usando las instrucciones sugeridas del archivo PDF del ejercicio. El agente no marcó `fecha_devolucion` como opcional y agregó una tabla `LIBRO_AUTOR`, con lo que la relación entre libro y autor no aparecía como muchos a muchos. Lo corregimos a mano (ver correcciones debajo del diagrama).
+
+## Equipo y reflexión
+
+**Integrantes:**
+
+- Juan de Jesús Rincón Rondón
+- Yelitz Saray Florez Ortiz
+- Karol Zulay Solano Gómez
+
+**1. ¿Qué parte de su diseño cambió después de escribir las primeras consultas, y por qué?**
+
+La estructura de los modelos no cambió: las consultas confirmaron que el diseño permitía responder todas las preguntas de los diez retos. Lo que sí descubrimos al consultar fue que "copia disponible" no es un campo guardado, sino algo que se calcula a partir de los préstamos activos (los que no tienen fecha de devolución), y que por eso los retos 4 y 5 necesitaron una subconsulta (`activos`) en vez de un simple filtro sobre la copia o el estudiante.
+
+**2. ¿En qué se equivocó el agente con el diagrama y cómo lo notaron?**
+
+El agente incluyó una tabla `LIBRO_AUTOR` que no existe en `models.py`, así que la relación entre libro y autor no se veía como muchos a muchos, y no marcó `fecha_devolucion` como campo opcional. Lo notamos comparando el diagrama contra el código modelo por modelo: en `models.py` la relación es un solo `ManyToManyField` (la tabla intermedia la crea Django por su cuenta) y `fecha_devolucion` tiene `null=True, blank=True`.
+
+**3. ¿Qué decisión de su modelo defenderían ante otro grupo y cuál cambiarían si empezaran de nuevo?**
+
+*Defenderíamos* separar `Libro` y `Copia`: así se sabe exactamente qué copia está prestada y a quién, y se puede tener varias copias del mismo libro en distinto estado. También defenderíamos haber puesto la regla de la copia prestada como restricción en la base de datos, porque no depende de por dónde se guarde el dato, y el uso de `PROTECT` en los préstamos para conservar el historial.
+
+*Cambiaríamos* [AJUSTAR a lo que de verdad piensen]: hacer único el nombre del autor, porque ahora se puede crear dos veces a "Stephen King" sin ningún error, y agregar una validación de que `fecha_limite` no sea anterior a `fecha_salida`, que hoy el modelo no revisa.
