@@ -1,7 +1,7 @@
 # biblioteca-ufps
 
 
-## 7. Consultas del ORM
+## FASE 5. Consultas del ORM
 
 Todas las consultas se ejecutaron en el shell de Django (`python manage.py shell`) con los datos de prueba cargados (`python manage.py loaddata datos_prueba.json`). Al abrir el shell se escribió:
 
@@ -275,3 +275,93 @@ True
 ```
 
 **Explicación:** La relación entre libro y autor es un `ManyToManyField`, que no usa `on_delete` (a diferencia de una `ForeignKey`). Al borrar el autor, Django solo eliminó la fila de la tabla intermedia (`Libro_autores`) que lo unía con "It", además del propio autor; por eso el resultado del `delete()` muestra 2 registros borrados. El libro no depende de un autor en particular, así que se conservó y quedó sin autores.
+
+
+## FASE 6. Reto final: consultas repetidas
+
+Todas las mediciones se hicieron en el shell de Django con `CaptureQueriesContext`, que cuenta cuántas consultas se ejecutan dentro del bloque `with`. Datos al momento de medir: 7 préstamos y 5 libros.
+
+---
+
+### Caso 1. Préstamos con su estudiante y su libro
+
+**Código original (con el problema):**
+
+```python
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from biblioteca.models import Prestamo, Libro
+
+with CaptureQueriesContext(connection) as ctx:
+    for p in Prestamo.objects.all():
+        print(p.estudiante.nombre, p.copia.libro.titulo)
+
+print(len(ctx), "consultas")
+```
+
+**Predicción:** 1 consulta para traer los préstamos, y por cada préstamo una consulta para `p.estudiante`, otra para `p.copia` y otra para `copia.libro`. Es decir, 1 + 3N. Con 7 préstamos: 1 + 3·7 = **22 consultas**.
+
+**Resultado:** `22 consultas`.
+
+**Corrección con `select_related`:**
+
+```python
+with CaptureQueriesContext(connection) as ctx:
+    for p in Prestamo.objects.select_related("estudiante", "copia__libro"):
+        print(p.estudiante.nombre, p.copia.libro.titulo)
+
+print(len(ctx), "consultas")
+```
+
+**Predicción:** Una sola consulta con JOIN que trae préstamo, estudiante, copia y libro juntos: **1 consultas**.
+
+**Resultado:** `1 consultas`.
+
+**Explicación:** `estudiante` y `copia` son `ForeignKey`, es decir, cada préstamo apunta a un solo objeto. Por eso `select_related` puede traerlos en la misma consulta con un JOIN, y con `"copia__libro"` encadena el salto de la copia a su libro.
+
+---
+
+### Caso 2. Libros con la lista de sus autores
+
+**Código original (con el problema):**
+
+```python
+with CaptureQueriesContext(connection) as ctx:
+    for libro in Libro.objects.all():
+        print(libro.titulo, [a.nombre for a in libro.autores.all()])
+
+print(len(ctx), "consultas")
+```
+
+**Predicción:** 1 consulta para los libros y 1 por cada libro para sus autores: 1 + N. Con 5 libros: **6 consultas**.
+
+**Resultado:** `6 consultas`.
+
+**Corrección con `prefetch_related`:**
+
+```python
+with CaptureQueriesContext(connection) as ctx:
+    for libro in Libro.objects.prefetch_related("autores"):
+        print(libro.titulo, [a.nombre for a in libro.autores.all()])
+
+print(len(ctx), "consultas")
+```
+
+**Predicción:** 1 consulta para los libros y 1 para todos los autores de esos libros: **2 consultas**, sin importar cuántos libros haya.
+
+**Resultado:** `2 consultas`.
+
+---
+
+### ¿Por qué `select_related` no sirve para el caso de los libros y sus autores?
+
+`autores` es un `ManyToManyField`: un libro tiene muchos autores y un autor tiene muchos libros. `select_related` resuelve todo con un JOIN, y en una relación de muchos a muchos el JOIN repetiría la fila del libro una vez por cada autor, así que no devuelve un objeto por libro con su lista de autores. `prefetch_related` hace una segunda consulta aparte que trae todos los autores de una vez y los une a cada libro en Python.
+
+---
+
+### Tabla de resultados
+
+| consulta | número de consultas antes | número después |
+|---|---|---|
+| Préstamos con estudiante y libro | 22 | 1 |
+| Libros con sus autores | 6 | 2 |
