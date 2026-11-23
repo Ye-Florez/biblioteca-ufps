@@ -14,7 +14,7 @@ Biblioteca UFPS es la base de datos de una biblioteca universitaria construida c
 
 ```bash
 # 1. Clonar el repositorio
-git clone [URL DEL REPOSITORIO]
+git clone https://github.com/Ye-Florez/biblioteca-ufps.git
 cd biblioteca-ufps
 
 # 2. Crear y activar el entorno virtual
@@ -155,7 +155,7 @@ Libro.objects.filter(titulo__icontains="amor")
 Resultado de la versión corregida:
 
 ```
-(PEGAR AQUÍ lo que devolvió la versión corregida)
+<QuerySet [<Libro: El amor en los tiempos del cólera (1985)>]>
 ```
 
 ---
@@ -521,7 +521,7 @@ La restricción dice que no puede haber dos préstamos de la misma copia que ten
 
 **Por qué elegimos constraint y no `clean()`:** `clean()` solo se ejecuta cuando los datos vienen de formularios o del admin, y se salta si se guarda con `.save()` o `.create()` desde el shell o desde un script. La restricción la hace cumplir la propia base de datos sin importar desde dónde se guarde, así que la regla no se puede romper por accidente. Además, con `violation_error_message` el admin muestra un mensaje claro a la bibliotecaria.
 
-**Prueba:** al intentar crear un segundo préstamo de una copia que ya está prestada, el admin (y `full_clean()`) muestra el mensaje "Esta copia ya está prestada y no ha sido devuelta.", y desde el shell `Prestamo.objects.create(...)` lanza `IntegrityError: UNIQUE constraint failed`. [CONFIRMAR: que lo probaron ustedes]
+**Prueba:** al intentar crear un segundo préstamo de una copia que ya está prestada, el admin (y `full_clean()`) muestra el mensaje "Esta copia ya está prestada y no ha sido devuelta.", y desde el shell `Prestamo.objects.create(...)` lanza `IntegrityError: UNIQUE constraint failed`.
 
 ## Panel de administración
 
