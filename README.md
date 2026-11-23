@@ -561,6 +561,6 @@ El agente incluyó una tabla `LIBRO_AUTOR` que no existe en `models.py`, así qu
 
 **3. ¿Qué decisión de su modelo defenderían ante otro grupo y cuál cambiarían si empezaran de nuevo?**
 
-*Defenderíamos* separar `Libro` y `Copia`: así se sabe exactamente qué copia está prestada y a quién, y se puede tener varias copias del mismo libro en distinto estado. También defenderíamos haber puesto la regla de la copia prestada como restricción en la base de datos, porque no depende de por dónde se guarde el dato, y el uso de `PROTECT` en los préstamos para conservar el historial.
+Defenderíamos separar `Libro` y `Copia`: así se sabe exactamente qué copia está prestada y a quién, y se puede tener varias copias del mismo libro en distinto estado. También defenderíamos haber puesto la regla de la copia prestada como restricción en la base de datos, porque no depende de por dónde se guarde el dato, y el uso de `PROTECT` en los préstamos para conservar el historial.
 
-*Cambiaríamos* [AJUSTAR a lo que de verdad piensen]: hacer único el nombre del autor, porque ahora se puede crear dos veces a "Stephen King" sin ningún error, y agregar una validación de que `fecha_limite` no sea anterior a `fecha_salida`, que hoy el modelo no revisa.
+Cambiaríamos hacer único el nombre del autor, porque ahora se puede crear dos veces a "Stephen King" sin ningún error, y agregar una validación de que `fecha_limite` no sea anterior a `fecha_salida`, que hoy el modelo no revisa.
