@@ -6,7 +6,7 @@ Biblioteca UFPS es la base de datos de una biblioteca universitaria construida c
 
 ## Tecnologías
 
-- Python 
+- Python 3.14.2
 - Django 5.2.19
 - SQLite
 
@@ -45,10 +45,10 @@ Los datos de prueba (`datos_prueba.json`) incluyen 5 libros, 3 autores, 3 catego
 
 ```
 biblioteca-ufps/
-├── manage.py                                                               # herramienta de línea de comandos de Django (runserver,      │                                                                           migrate, shell...)
+├── manage.py                                                               # herramienta de línea de comandos de Django (runserver, migrate, shell...)
 ├── requirements.txt                                                        # librerías que necesita el proyecto
 ├── datos_prueba.json                                                       # datos de ejemplo para cargar con loaddata
-├── .gitignore                                                              # archivos que Git no debe subir (venv, __pycache__,          │                                                                           db.sqlite3)
+├── .gitignore                                                              # archivos que Git no debe subir (venv, __pycache__, db.sqlite3)
 ├── config/                                                                 # configuración del proyecto
 │   ├── __init__.py                                                         # vacío: marca la carpeta como paquete de Python
 │   ├── settings.py                                                         # ajustes: apps instaladas, base de datos, idioma
