@@ -365,3 +365,61 @@ print(len(ctx), "consultas")
 |---|---|---|
 | Préstamos con estudiante y libro | 22 | 1 |
 | Libros con sus autores | 6 | 2 |
+
+
+## Fase 7. El diagrama de relaciones con mermaid
+
+```mermaid
+erDiagram
+    AUTOR {
+        int id PK
+        varchar nombre
+    }
+
+    CATEGORIA {
+        int id PK
+        varchar nombre UK
+    }
+
+    LIBRO {
+        int id PK
+        varchar titulo
+        int anio_publicacion
+        varchar isbn UK
+        int categoria_id FK
+        varchar idioma
+    }
+
+    COPIA {
+        int id PK
+        int libro_id FK
+        varchar codigo_inventario UK
+        varchar condicion
+    }
+
+    ESTUDIANTE {
+        int id PK
+        varchar codigo UK
+        varchar nombre
+        varchar correo UK
+    }
+
+    PRESTAMO {
+        int id PK
+        int copia_id FK
+        int estudiante_id FK
+        date fecha_salida
+        date fecha_limite
+        date fecha_devolucion "nullable"
+    }
+
+    CATEGORIA ||--o{ LIBRO : clasifica
+    LIBRO ||--o{ COPIA : tiene
+    COPIA ||--o{ PRESTAMO : registra
+    ESTUDIANTE ||--o{ PRESTAMO : realiza
+    LIBRO }o--o{ AUTOR : escrito_por
+```
+
+**Correcciones:** 
+- No puso "fecha_devolucion" de PRESTAMO como nullable
+- El agente incluyo una tabla LIBRO_AUTOR, lo que hacia que el ManyToManyField entre LIBRO y AUTOR no apareciera como muchos a muchos
